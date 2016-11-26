@@ -2,44 +2,83 @@
 
 #include <iostream>
 #include <fstream>
-#include <cstring>
+#include <string>
 #include <vector>
 #include <cstdlib>
 
 using namespace std;
 
-int sizeCharArray (char myArray[]) {
-	char* chrPtr = &myArray[0];
-
-	int count = 0;
-	while (*chrPtr != NULL) {
-		count++;
-		chrPtr++;
-	}
-
-	return count;
-}
 
 
 int main() {
+	int NUMBER_OF_ROUNDS = 3;
 
-	char word[100];
-	vector<pair<string,int> > wordList;
+	vector<string> wordList;
 
 	ifstream infile;
 	infile.open("file.dat", ios::in);
 
-	infile.getline(word,100);
-	while(word[0] != '\0' && !infile.eof()) {
-		infile.getline(word, 100);
+	//Reads a file of words into a wordList
+	char wordReader[100];
+	infile.getline(wordReader,100);
+	while(wordReader[0] != '\0' && !infile.eof()) {
+		infile.getline(wordReader, 100);
 		infile.peek();
-		wordList.push_back(make_pair(word, sizeCharArray(word)));
+		wordList.push_back(wordReader);
 	}
 
+	//Chooses a random word from the wordList
 	srand( time(NULL) );
 	int randomWord = rand() % wordList.size();
+	string word = wordList.at(randomWord);
 
-	cout << "Your random word is: " << wordList.at(randomWord).first << ", which is length of: " << wordList.at(randomWord).second << endl;
+	cout << word << endl;
+	cout << "It is a " << word.length() << " letter word." << endl;
+
+
+	//Start the rounds of guessing
+	bool correctGuess = false;
+	for(int rounds = 0; rounds < NUMBER_OF_ROUNDS && !correctGuess; rounds++) {
+
+		cout << "Please enter a character as your guess" << endl;
+
+		//Accepts a single char for the users guess
+		string userGuess;
+		getline(cin, userGuess);
+
+		int bulls = 0;
+		int cows = 0;
+		vector <bool>matches;
+		matches.resize(word.length());
+		for(int i = 0; i < matches.size(); i++) {
+			matches.at(i) = false;
+		}
+
+		//Count Bulls (letters in exact place) and Cows (right letters, wrong place)
+		for(unsigned int it = 0; it < userGuess.length(); it++) {
+			for(unsigned int i = 0; i < word.length(); i++) {
+				if(word.at(i) == userGuess.at(it) && !matches.at(i)) {
+					matches.at(i) = true;
+					if(i == it) {
+						bulls++;
+					} else {
+						cows++;
+
+					}
+					//cout << "it: " << it << userGuess.at(it) << " at: " << i << endl;
+				}
+			}
+		}
+
+		//Show results
+		cout << "Cows: " << cows << endl;
+		cout << "Bulls: " << bulls << endl;
+		if(word == userGuess) {
+			correctGuess = true;
+			cout << "Congrats, you were 100% correct. Winner!" << endl;
+		}
+	}
+
 
 	//Clean up
 	infile.close();
